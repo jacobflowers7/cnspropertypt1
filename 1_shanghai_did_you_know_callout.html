@@ -1,7 +1,12 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-.dyk{position:relative;width:100%;min-height:210px;border-radius:16px;overflow:hidden;background:#05091a;cursor:crosshair;font-family:var(--font-sans,system-ui,sans-serif)}
+body{margin:0;padding:0;background:#05091a}
+.dyk{position:relative;width:100%;min-height:210px;border-radius:16px;overflow:hidden;background:#05091a;cursor:crosshair;font-family:system-ui,-apple-system,sans-serif}
 .dyk canvas{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.7;pointer-events:none}
 .dyk-sky{position:absolute;bottom:0;left:0;width:100%;height:55%;pointer-events:none;opacity:.13}
 .dyk-glow{position:absolute;bottom:0;left:0;width:100%;height:30%;background:linear-gradient(to top,rgba(255,200,80,.07),transparent);pointer-events:none}
@@ -18,6 +23,8 @@
 .sparkle{position:absolute;border-radius:50%;pointer-events:none;z-index:20;animation:sp .9s ease-out forwards}
 @keyframes sp{0%{opacity:.9;transform:scale(1) translate(0,0)}100%{opacity:0;transform:scale(0) translate(var(--tx),var(--ty))}}
 </style>
+</head>
+<body>
 
 <div class="dyk" id="dyk">
   <canvas id="rc"></canvas>
@@ -64,7 +71,7 @@
   <div class="dyk-glow"></div>
   <div class="dyk-content">
     <div class="dyk-stat">
-      <div class="dyk-num" id="dyk-num">0.5%</div>
+      <div class="dyk-num">0.5%</div>
       <div class="dyk-unit">of transactions</div>
     </div>
     <div class="dyk-divider"></div>
@@ -79,51 +86,41 @@
 
 <script>
 (function(){
-const card = document.getElementById('dyk');
-const canvas = document.getElementById('rc');
-const ctx = canvas.getContext('2d');
-const SIM = 200;
-let W = SIM, H = 80;
-let buf1, buf2;
-
+const card=document.getElementById('dyk');
+const canvas=document.getElementById('rc');
+const ctx=canvas.getContext('2d');
+const SIM=200;
+let W=SIM,H=80;
+let buf1,buf2;
 function initBuffers(){
-  W = SIM;
-  H = Math.round(SIM * (card.offsetHeight / card.offsetWidth));
-  if(H<60) H=60;
-  canvas.width = W;
-  canvas.height = H;
-  buf1 = new Float32Array(W * H);
-  buf2 = new Float32Array(W * H);
+  W=SIM;
+  H=Math.round(SIM*(card.offsetHeight/card.offsetWidth));
+  if(H<60)H=60;
+  canvas.width=W;canvas.height=H;
+  buf1=new Float32Array(W*H);buf2=new Float32Array(W*H);
 }
-
-function drop(fx, fy, str){
-  const x = Math.round(fx * W);
-  const y = Math.round(fy * H);
-  for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++){
-    const nx=x+dx, ny=y+dy;
-    if(nx>=0&&nx<W&&ny>=0&&ny<H) buf1[ny*W+nx]+=str;
+function drop(fx,fy,str){
+  const x=Math.round(fx*W),y=Math.round(fy*H);
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+    const nx=x+dx,ny=y+dy;
+    if(nx>=0&&nx<W&&ny>=0&&ny<H)buf1[ny*W+nx]+=str;
   }
 }
-
 function step(){
   const damp=0.97;
-  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
     const i=y*W+x;
-    buf2[i]=((buf1[(y-1)*W+x]+buf1[(y+1)*W+x]+buf1[y*W+x-1]+buf1[y*W+x+1])/2 - buf2[i])*damp;
+    buf2[i]=((buf1[(y-1)*W+x]+buf1[(y+1)*W+x]+buf1[y*W+x-1]+buf1[y*W+x+1])/2-buf2[i])*damp;
   }
-  const t=buf1; buf1=buf2; buf2=t;
+  const t=buf1;buf1=buf2;buf2=t;
 }
-
 function render(){
-  const img = ctx.createImageData(W, H);
-  const d = img.data;
-  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){
+  const img=ctx.createImageData(W,H);const d=img.data;
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
     const i=y*W+x;
     const ddx=buf1[i+1]-buf1[i-1];
     const ddy=buf1[i+W]-buf1[i-W];
-    let sx=Math.max(0,Math.min(W-1,x+Math.round(ddx)));
-    let sy=Math.max(0,Math.min(H-1,y+Math.round(ddy)));
-    const base=10+(sy/H)*10;
+    const base=10+(y/H)*10;
     const br=Math.abs(ddx)+Math.abs(ddy);
     const p=(y*W+x)*4;
     d[p]=Math.min(255,base+br*6);
@@ -133,10 +130,8 @@ function render(){
   }
   ctx.putImageData(img,0,0);
 }
-
 function loop(){step();render();requestAnimationFrame(loop);}
-
-function sparkle(ex, ey){
+function sparkle(ex,ey){
   for(let i=0;i<3;i++){
     const s=document.createElement('div');
     s.className='sparkle';
@@ -145,28 +140,23 @@ function sparkle(ex, ey){
     const dist=15+Math.random()*25;
     const hue=Math.random()>0.5?'#e8d085':'#a0c4ff';
     s.style.cssText=`left:${ex}px;top:${ey}px;width:${size}px;height:${size}px;background:${hue};--tx:${Math.cos(ang)*dist}px;--ty:${Math.sin(ang)*dist}px`;
-    card.appendChild(s);
-    setTimeout(()=>s.remove(),900);
+    card.appendChild(s);setTimeout(()=>s.remove(),900);
   }
 }
-
 card.addEventListener('mousemove',function(e){
   const r=card.getBoundingClientRect();
-  const fx=(e.clientX-r.left)/r.width;
-  const fy=(e.clientY-r.top)/r.height;
-  drop(fx,fy,600);
-  if(Math.random()<0.4) sparkle(e.clientX-r.left, e.clientY-r.top);
+  drop((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height,600);
+  if(Math.random()<0.4)sparkle(e.clientX-r.left,e.clientY-r.top);
 });
-
 card.addEventListener('click',function(e){
   const r=card.getBoundingClientRect();
   drop((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height,1200);
-  for(let i=0;i<8;i++) sparkle(e.clientX-r.left, e.clientY-r.top);
+  for(let i=0;i<8;i++)sparkle(e.clientX-r.left,e.clientY-r.top);
 });
-
-setInterval(()=>{drop(0.1+Math.random()*0.8, 0.2+Math.random()*0.6, 180+Math.random()*250);},1400);
-
-initBuffers();
-loop();
+setInterval(()=>{drop(0.1+Math.random()*0.8,0.2+Math.random()*0.6,180+Math.random()*250);},1400);
+initBuffers();loop();
 })();
 </script>
+
+</body>
+</html>

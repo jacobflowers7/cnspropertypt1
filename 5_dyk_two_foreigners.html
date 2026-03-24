@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05091a;margin:0;padding:0}
+.card{position:relative;width:100%;min-height:210px;background:#05091a;border-radius:16px;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;cursor:crosshair}
+canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.inner{position:relative;z-index:10;display:flex;align-items:center;padding:1.6rem 2.2rem;gap:2.4rem;min-height:210px}
+.passport-col{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.passports{position:relative;width:84px;height:64px}
+.passport{position:absolute;width:52px;height:68px;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.passport.a{left:0;top:0;background:#0e1f2e;border:1px solid rgba(100,160,220,.25);transform:rotate(-8deg);z-index:1}
+.passport.b{right:0;top:0;background:#1a0e20;border:1px solid rgba(160,100,220,.25);transform:rotate(6deg);z-index:2}
+.passport-circle{width:18px;height:18px;border-radius:50%;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
+.passport-line{width:30px;height:2px;border-radius:1px;margin:1px 0}
+.passport.a .passport-line{background:rgba(100,160,220,.25)}
+.passport.b .passport-line{background:rgba(160,100,220,.25)}
+.passport.a .passport-circle{border-color:rgba(100,160,220,.3)}
+.passport.b .passport-circle{border-color:rgba(160,100,220,.3)}
+.question{width:28px;height:28px;border-radius:50%;background:rgba(200,175,100,.08);border:1px solid rgba(200,175,100,.2);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(200,175,100,.7);font-weight:700;flex-shrink:0}
+.edge-cases{display:flex;flex-direction:column;gap:6px;width:100%}
+.ec{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:7px 10px;font-size:11px;color:rgba(160,185,230,.55);line-height:1.4;display:flex;align-items:flex-start;gap:6px}
+.ec-dot{width:4px;height:4px;border-radius:50%;background:rgba(200,175,100,.4);flex-shrink:0;margin-top:4px}
+.content{flex:1;display:flex;flex-direction:column;gap:10px}
+.tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(200,175,100,.6);font-weight:500}
+.headline{font-size:20px;font-weight:700;color:#e8d5a3;line-height:1.2}
+.headline span{color:rgba(200,175,100,.8)}
+.body{font-size:13px;color:rgba(195,215,250,.65);line-height:1.6;max-width:340px}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <canvas id="cv"></canvas>
+  <div class="inner">
+    <div class="passport-col">
+      <div class="passports">
+        <div class="passport a">
+          <div class="passport-circle"></div>
+          <div class="passport-line"></div>
+          <div class="passport-line" style="width:22px"></div>
+        </div>
+        <div class="passport b">
+          <div class="passport-circle"></div>
+          <div class="passport-line"></div>
+          <div class="passport-line" style="width:22px"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+        <div class="question">?</div>
+      </div>
+      <div class="edge-cases">
+        <div class="ec"><div class="ec-dot"></div>Two foreign passports</div>
+        <div class="ec"><div class="ec-dot"></div>Self-employed buyers</div>
+        <div class="ec"><div class="ec-dot"></div>Remote workers</div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="tag">Did you know</div>
+      <div class="headline">Some situations<br>need a <span>lawyer,</span><br>not a guide.</div>
+      <div class="body">Two foreign nationals buying together, self-employed expats, and remote workers without a local employer all fall outside what the standard rules address. No general guide resolves these cases cleanly. A Shanghai-based property lawyer is the right call before committing to anything.</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const card=document.getElementById('card');
+  const cv=document.getElementById('cv');
+  const ctx=cv.getContext('2d');
+  let W,H,t=0;
+  let mx=-1,my=-1;
+  const pts=[];
+  for(let i=0;i<50;i++){
+    pts.push({x:Math.random(),y:Math.random(),r:0.5+Math.random()*1.1,phase:Math.random()*Math.PI*2,hue:Math.random()<0.5?'100,160,220':'160,100,220',speed:0.004+Math.random()*0.008,dir:Math.random()<0.5?1:-1});
+  }
+  function resize(){W=card.offsetWidth;H=card.offsetHeight;cv.width=W;cv.height=H;}
+  function frame(){
+    t+=0.016;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#05091a';ctx.fillRect(0,0,W,H);
+    for(let i=0;i<45;i++){
+      const sx=(i*179.1)%W,sy=(i*103.7)%(H*0.9);
+      const tw=0.08+0.14*Math.abs(Math.sin(t*0.3+i*2.1));
+      ctx.beginPath();ctx.arc(sx,sy,0.5,0,Math.PI*2);
+      ctx.fillStyle=`rgba(200,215,255,${tw})`;ctx.fill();
+    }
+    for(const p of pts){
+      p.x+=p.dir*p.speed*0.3;p.y-=p.speed;
+      if(p.y<0){p.y=1;p.x=Math.random();}
+      if(p.x<0||p.x>1){p.dir*=-1;}
+      const a=0.05+0.09*Math.abs(Math.sin(t*1.1+p.phase));
+      ctx.beginPath();ctx.arc(p.x*W,p.y*H,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.hue},${a})`;ctx.fill();
+    }
+    if(mx>0){
+      const grad=ctx.createRadialGradient(mx,my,0,mx,my,90);
+      grad.addColorStop(0,'rgba(200,175,80,0.05)');
+      grad.addColorStop(1,'rgba(200,175,80,0)');
+      ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+    }
+    requestAnimationFrame(frame);
+  }
+  card.addEventListener('mousemove',function(e){
+    const r=card.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;
+  });
+  card.addEventListener('mouseleave',function(){mx=-1;my=-1;});
+  resize();frame();
+})();
+</script>
+</body>
+</html>
